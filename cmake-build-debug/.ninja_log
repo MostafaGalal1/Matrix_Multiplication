@@ -1,0 +1,20 @@
+# ninja log v5
+0	148	6997626452805859	CMakeFiles/matMultp.dir/main.c.obj	37fe96f1a23a2284
+149	378	6997626455019140	matMultp.exe	854d4ee68ebde1bf
+2	111	6997640922710659	CMakeFiles/matMultp.dir/main.c.obj	37fe96f1a23a2284
+2	114	6997642257566562	CMakeFiles/matMultp.dir/main.c.obj	37fe96f1a23a2284
+1	90	6997642548048070	CMakeFiles/matMultp.dir/main.c.obj	37fe96f1a23a2284
+3	116	6997644413352294	CMakeFiles/matMultp.dir/main.c.obj	37fe96f1a23a2284
+117	253	6997644414674685	matMultp.exe	854d4ee68ebde1bf
+3	103	6997644746480123	CMakeFiles/matMultp.dir/main.c.obj	37fe96f1a23a2284
+103	231	6997644747695694	matMultp.exe	854d4ee68ebde1bf
+2	90	6997645061050036	CMakeFiles/matMultp.dir/main.c.obj	37fe96f1a23a2284
+91	202	6997645062103578	matMultp.exe	854d4ee68ebde1bf
+2	101	6997646230282667	CMakeFiles/matMultp.dir/main.c.obj	37fe96f1a23a2284
+102	231	6997646231514273	matMultp.exe	854d4ee68ebde1bf
+2	104	6997647663279537	CMakeFiles/matMultp.dir/main.c.obj	37fe96f1a23a2284
+105	215	6997647664322340	matMultp.exe	854d4ee68ebde1bf
+3	88	6997648120667941	CMakeFiles/matMultp.dir/main.c.obj	37fe96f1a23a2284
+89	208	6997648121814988	matMultp.exe	854d4ee68ebde1bf
+3	97	6997648768739204	CMakeFiles/matMultp.dir/main.c.obj	37fe96f1a23a2284
+98	213	6997648769821037	matMultp.exe	854d4ee68ebde1bf
