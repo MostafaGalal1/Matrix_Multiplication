@@ -236,6 +236,7 @@ int main(int argc, char *argv[]) {
     heap->D = data;
 
     if (A->col != B->row){
+        printf("Sizes of matrices are incompatible");
         free_heap(heap);
         return 0;
     }
