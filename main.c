@@ -105,11 +105,11 @@ void *thread_matrix_multiplication(void *args){
         for (int j = 0; j < data->ms->col; ++j) {
             ((int (*)[data->ms->col]) data->C)[i][j] = 0;
             for (int k = 0; k < data->ms->pad; ++k) {
-                ((int ()[data->ms->col]) data->C)[i][j] += ((int ()[data->ms->pad]) data->ms->A)[i][k] * ((int (*)[data->ms->col]) data->ms->B)[k][j];
+                ((int (*)[data->ms->col]) data->C)[i][j] += ((int (*)[data->ms->pad]) data->ms->A)[i][k] * ((int (*)[data->ms->col]) data->ms->B)[k][j];
             }
         }
     }
-    free(args);
+    free(data);
     pthread_exit(0);
 }
 void *thread_row_multiplication(void *args){
@@ -117,19 +117,19 @@ void *thread_row_multiplication(void *args){
     for (int i = 0; i < data->ms->col; ++i) {
         ((int (*)[data->ms->col])data->C)[data->cur_row][i] = 0;
         for (int j = 0; j < data->ms->pad; ++j) {
-            ((int ()[data->ms->col])data->C)[data->cur_row][i] += ((int ()[data->ms->pad])data->ms->A)[data->cur_row][j] * ((int (*)[data->ms->col])data->ms->B)[j][i];
+            ((int (*)[data->ms->col])data->C)[data->cur_row][i] += ((int (*)[data->ms->pad])data->ms->A)[data->cur_row][j] * ((int (*)[data->ms->col])data->ms->B)[j][i];
         }
     }
-    free(args);
+    free(data);
     pthread_exit(0);
 }
 void *thread_element_multiplication(void *args){
     struct functionStruct *data = args;
     ((int (*)[data->ms->col])data->C)[data->cur_row][data->cur_col] = 0;
     for (int i = 0; i < data->ms->pad; ++i) {
-        ((int ()[data->ms->col])data->C)[data->cur_row][data->cur_col] += ((int ()[data->ms->pad])data->ms->A)[data->cur_row][i] * ((int (*)[data->ms->col])data->ms->B)[i][data->cur_col];
+        ((int (*)[data->ms->col])data->C)[data->cur_row][data->cur_col] += ((int (*)[data->ms->pad])data->ms->A)[data->cur_row][i] * ((int (*)[data->ms->col])data->ms->B)[i][data->cur_col];
     }
-    free(args);
+    free(data);
     pthread_exit(0);
 }
 
@@ -138,15 +138,14 @@ void main_matrix_multiplication(struct multiplicationStruct *common_data, struct
     struct functionStruct *special_data = malloc(sizeof(struct functionStruct));
     special_data->C = output_matrix->m;
     special_data->ms = common_data;
-    pthread_create(&thread_id, NULL, thread_matrix_multiplication, special_data);
+    pthread_create(&thread, NULL, thread_matrix_multiplication, special_data);
     pthread_join(thread, NULL);
 }
 void main_row_multiplication(struct multiplicationStruct *common_data, struct matrixStruct *output_matrix){
-    threads_num = common_data->row;
+    int threads_num = common_data->row;
     pthread_t threads[threads_num];
     
     for (int i = 0; i < common_data->row; ++i) {
-        pthread_t thread_id;
         struct functionStruct *special_data = malloc(sizeof(struct functionStruct));
         special_data->cur_row = i;
         special_data->C = output_matrix->m;
@@ -159,7 +158,7 @@ void main_row_multiplication(struct multiplicationStruct *common_data, struct ma
      }
 }
 void main_element_multiplication(struct multiplicationStruct *common_data, struct matrixStruct *output_matrix){
-    threads_num = common_data->row * common_data->col;
+    int threads_num = common_data->row * common_data->col;
     pthread_t threads[threads_num];
     
     for (int i = 0; i < common_data->row; ++i) {
