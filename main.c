@@ -134,34 +134,48 @@ void *thread_element_multiplication(void *args){
 }
 
 void main_matrix_multiplication(struct multiplicationStruct *common_data, struct matrixStruct *output_matrix){
-    pthread_t thread_id;
+    pthread_t thread;
     struct functionStruct *special_data = malloc(sizeof(struct functionStruct));
     special_data->C = output_matrix->m;
     special_data->ms = common_data;
     pthread_create(&thread_id, NULL, thread_matrix_multiplication, special_data);
+    pthread_join(thread, NULL);
 }
 void main_row_multiplication(struct multiplicationStruct *common_data, struct matrixStruct *output_matrix){
+    threads_num = common_data->row;
+    pthread_t threads[threads_num];
+    
     for (int i = 0; i < common_data->row; ++i) {
         pthread_t thread_id;
         struct functionStruct *special_data = malloc(sizeof(struct functionStruct));
         special_data->cur_row = i;
         special_data->C = output_matrix->m;
         special_data->ms = common_data;
-        pthread_create(&thread_id, NULL, thread_row_multiplication, special_data);
+        pthread_create(&threads[i], NULL, thread_row_multiplication, special_data);
     }
+    
+    for (int i = 0; i < threads_num; ++i) {
+        pthread_join(threads[i], NULL);
+     }
 }
 void main_element_multiplication(struct multiplicationStruct *common_data, struct matrixStruct *output_matrix){
+    threads_num = common_data->row * common_data->col;
+    pthread_t threads[threads_num];
+    
     for (int i = 0; i < common_data->row; ++i) {
         for (int j = 0; j < common_data->col; ++j) {
-            pthread_t thread_id;
             struct functionStruct *special_data = malloc(sizeof(struct functionStruct));
             special_data->cur_row = i;
             special_data->cur_col = j;
             special_data->C = output_matrix->m;
             special_data->ms = common_data;
-            pthread_create(&thread_id, NULL, thread_element_multiplication, special_data);
+            pthread_create(&threads[i*common_data->col+j], NULL, thread_element_multiplication, special_data);
         }
     }
+    
+    for (int i = 0; i < threads_num; ++i) {
+        pthread_join(threads[i], NULL);
+     }
 }
 
 void free_heap(struct heapStruct *heap){
