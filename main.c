@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <sys/time.h>
 
+//Constants and macros used in the code.
 #define MATRICES_NUMBER 3
 #define INPUT1_NAME "a"
 #define INPUT2_NAME "b"
@@ -12,20 +13,43 @@
 #define ROW_NAME_EXT "_per_row"
 #define ELEMENT_NAME_EXT "_per_element"
 
+/*
+ * This is a struct that defines a matrix.
+ * The row and col variables store the dimensions of the matrix.
+ * m is a pointer to the matrix data.
+ */
 struct matrixStruct {
     int row, col;
     int (*m)[];
 };
+
+/*
+ * This is a struct that defines the data necessary for matrix multiplication.
+ * row and col store the dimensions of the result matrix>
+ * pad is the shared dimension of the two input matrices, and A and B are pointers to the two input matrices.
+ */
 struct multiplicationStruct {
     int row, col, pad;
     int (*A)[];
     int (*B)[];
 };
+
+/*
+ * This is a struct that defines the data necessary for each thread of matrix multiplication.
+ * cur_row and cur_col store the current row and column of the output matrix being computed, C is a pointer to the output matrix.
+ * ms is a pointer to the struct containing the data necessary for matrix multiplication.
+ */
 struct functionStruct {
     int cur_row, cur_col;
     int (*C)[];
     struct multiplicationStruct *ms;
 };
+
+/*
+ * This is a struct that defines the heap of matrices used in the program.
+ * A and B are pointers to the two input matrices, C is an array of pointers to the output matrices,
+ * D is a pointer to the struct containing the data necessary for matrix multiplication.
+ */
 struct heapStruct {
     struct matrixStruct *A;
     struct matrixStruct *B;
@@ -33,6 +57,10 @@ struct heapStruct {
     struct multiplicationStruct *D;
 };
 
+/*
+ * This function reads a matrix from a file.
+ * file_name is the name of the file
+ */
 int read_file(char *file_name, struct matrixStruct *matrix){
     FILE *input_file;
     char * line = NULL, full_name[256];
@@ -76,6 +104,12 @@ int read_file(char *file_name, struct matrixStruct *matrix){
     matrix->m = array;
     return 0;
 }
+
+/*
+ * This function writes a matrix to a file.
+ * Takes a file name, an extension, and a matrix as input, and outputs the matrix to a text file.
+ * The matrix is written row by row, with each row on a separate line.
+ */
 void write_file(char *file_name, char *extension, struct matrixStruct*matrix){
     FILE *output_file;
     char full_name[256];
@@ -99,6 +133,11 @@ void write_file(char *file_name, char *extension, struct matrixStruct*matrix){
     fclose(output_file);
 }
 
+/*
+ * This function is called by main_matrix_multiplication and performs matrix multiplication on the whole matrix using multi-threading.
+ * Takes a structure that contains the matrices A, B, and C, as well as the number of rows, columns, and padding.
+ * Performs the multiplication using nested loops.
+ */
 void *thread_matrix_multiplication(void *args){
     struct functionStruct *data = args;
     for (int i = 0; i < data->ms->row; ++i) {
@@ -112,6 +151,12 @@ void *thread_matrix_multiplication(void *args){
     free(data);
     pthread_exit(0);
 }
+
+/*
+ * This function is called by main_row_multiplication and performs matrix multiplication row by row using multi-threading.
+ * Takes a structure that contains the matrices A, B, and C, as well as the number of rows, columns, and padding.
+ * Performs the multiplication on one row at a time using nested loops.
+ */
 void *thread_row_multiplication(void *args){
     struct functionStruct *data = args;
     for (int i = 0; i < data->ms->col; ++i) {
@@ -123,6 +168,12 @@ void *thread_row_multiplication(void *args){
     free(data);
     pthread_exit(0);
 }
+
+/*
+ * This function is called by main_element_multiplication and performs matrix multiplication element by element using multi-threading.
+ * Takes a structure that contains the matrices A, B, and C, as well as the number of rows, columns, and padding.
+ * Performs the multiplication on one element at a time using nested loops.
+ */
 void *thread_element_multiplication(void *args){
     struct functionStruct *data = args;
     ((int (*)[data->ms->col])data->C)[data->cur_row][data->cur_col] = 0;
@@ -133,6 +184,11 @@ void *thread_element_multiplication(void *args){
     pthread_exit(0);
 }
 
+/*
+ * This function is called by the main function and performs matrix multiplication on the whole matrix using a single thread.
+ * Takes the matrices A and B, as well as the number of rows, columns, and padding.
+ * Calls thread_matrix_multiplication to perform the multiplication.
+ */
 void main_matrix_multiplication(struct multiplicationStruct *common_data, struct matrixStruct *output_matrix){
     pthread_t thread;
     struct functionStruct *special_data = malloc(sizeof(struct functionStruct));
@@ -141,10 +197,16 @@ void main_matrix_multiplication(struct multiplicationStruct *common_data, struct
     pthread_create(&thread, NULL, thread_matrix_multiplication, special_data);
     pthread_join(thread, NULL);
 }
+
+/*
+ * This function is called by the main function and performs matrix multiplication row by row using multi-threading.
+ * Takes the matrices A and B, as well as the number of rows, columns, and padding.
+ * Calls thread_row_multiplication to perform the multiplication.
+ */
 void main_row_multiplication(struct multiplicationStruct *common_data, struct matrixStruct *output_matrix){
     int threads_num = common_data->row;
     pthread_t threads[threads_num];
-    
+
     for (int i = 0; i < common_data->row; ++i) {
         struct functionStruct *special_data = malloc(sizeof(struct functionStruct));
         special_data->cur_row = i;
@@ -152,15 +214,21 @@ void main_row_multiplication(struct multiplicationStruct *common_data, struct ma
         special_data->ms = common_data;
         pthread_create(&threads[i], NULL, thread_row_multiplication, special_data);
     }
-    
+
     for (int i = 0; i < threads_num; ++i) {
         pthread_join(threads[i], NULL);
-     }
+    }
 }
+
+/*
+ * This function is called by the main function and performs matrix multiplication element by element using multi-threading.
+ * Takes the matrices A and B, as well as the number of rows, columns, and padding.
+ * Calls thread_element_multiplication to perform the multiplication.
+ */
 void main_element_multiplication(struct multiplicationStruct *common_data, struct matrixStruct *output_matrix){
     int threads_num = common_data->row * common_data->col;
     pthread_t threads[threads_num];
-    
+
     for (int i = 0; i < common_data->row; ++i) {
         for (int j = 0; j < common_data->col; ++j) {
             struct functionStruct *special_data = malloc(sizeof(struct functionStruct));
@@ -171,12 +239,17 @@ void main_element_multiplication(struct multiplicationStruct *common_data, struc
             pthread_create(&threads[i*common_data->col+j], NULL, thread_element_multiplication, special_data);
         }
     }
-    
+
     for (int i = 0; i < threads_num; ++i) {
         pthread_join(threads[i], NULL);
-     }
+    }
 }
 
+/*
+ * This function frees all the memory allocated on the heap by the program.
+ * Takes a structure that contains pointers to matrices A, B, and C, as well as the number of matrices.
+ * Frees the memory allocated for each matrix.
+ */
 void free_heap(struct heapStruct *heap){
     free(heap->A->m);
     free(heap->A);
@@ -190,6 +263,11 @@ void free_heap(struct heapStruct *heap){
     free(heap);
 }
 
+/*
+ * This function prompts the user to input the number of rows and columns for the matrices.
+ * Calls the corresponding functions to perform the multiplication and writes the resulting matrices to corresponding files.
+ * Calls free_heap to free the memory allocated on the heap by the program.
+ */
 int main(int argc, char *argv[]) {
 
     struct timeval stop, start;
